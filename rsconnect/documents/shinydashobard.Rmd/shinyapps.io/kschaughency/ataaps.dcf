@@ -1,0 +1,12 @@
+name: ataaps
+title: ataaps
+username:
+account: kschaughency
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2100314
+bundleId: 3004968
+url: https://kschaughency.shinyapps.io/ataaps/
+when: 1586743344.59096
+asMultiple: FALSE
+asStatic: FALSE

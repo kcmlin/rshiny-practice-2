@@ -1,0 +1,208 @@
+---
+title: "Reported Hours"
+output: flexdashboard::flex_dashboard
+runtime: shiny
+---
+
+```{r global, include=FALSE}
+
+# load package
+library(tidyverse) # include tidyverse, ggplot2, tibble, tidyr, readr, purrr, dplyr, stringr, forcats
+library(readxl)    # read excel
+library(lubridate) # convert date
+
+# load data
+data <- read_excel("ataaps_example_10Apr20.xlsx", sheet = "DATA", col_types = "text")
+
+# clean and subset data
+data.2 <-  
+    data %>% 
+      mutate(CY = as.numeric(substr(Year,8,11))) %>%          # create new variable: CY
+      mutate(hours = as.numeric(Hours.Charged)) %>%           # convert hours to numeric
+      mutate(CM = case_when(Month=="JAN" ~1,                  # convert month to numeric
+                            Month=="FEB" ~2,
+                            Month=="MAR" ~3,
+                            Month=="APR" ~4,
+                            Month=="MAY" ~5,
+                            Month=="JUN" ~6,
+                            Month=="JUL" ~7,
+                            Month=="AUG" ~8,
+                            Month=="SEP" ~9,
+                            Month=="OCT" ~10,
+                            Month=="NOV" ~11,
+                            Month=="DEC" ~12),
+              CD = 1) %>%                                     # create day of month
+      mutate(date=make_date(CY,CM,CD)) %>%                    # combine year, month, day to date
+      select(date,                                            # subset the dataset to few variables
+             Employee.Name,
+             Rating.Year,
+             WBS.Group.Name,
+             Job.Order.Type.Description,
+             WBS.Group.Category,
+             hours) 
+
+```
+
+# Overall
+
+## Column {.sidebar}
+
+**BACKGROUND:** 
+
+This dashboard was developed by Katherine Schaughency. The intent was to use the workload data to practice her R skill using tidyverse and flexdashboard. 
+
+**DASHBOARD:** 
+
+This dashboard summarizes reported labor hours for each project/non-project from Dec 2017 to Mar 2020. 
+
+**USER INPUTS:**
+
+```{r input1.1}
+
+selectInput(inputId = "name", 
+            label = "Name of the Employee:",
+            choices = c("DOE, JOHN"),
+            selected = "DOE, JOHN")
+
+selectInput(inputId = "wbs.type",
+            label = "Billable Type:",
+            choices = c("Project", "Non-Project"),
+            selected = "Project")
+
+```
+
+
+## Column {.tabset} 
+
+### Plot
+
+```{r output1.1}
+
+renderPlot({
+
+       data.2 %>%                               
+          filter(Employee.Name == input$name) %>% 
+          filter(WBS.Group.Category == input$wbs.type) %>% 
+    
+          group_by(date, WBS.Group.Name) %>% 
+          summarize(total.hours = sum(hours)) %>%  
+  
+          ggplot(aes(x=date,
+                     y=reorder(WBS.Group.Name, desc(WBS.Group.Name)),
+                     size=total.hours,
+                     color=WBS.Group.Name)) +
+          geom_point(alpha=0.5) +
+          scale_y_discrete(labels = function(k) str_wrap(k, width = 20)) +
+          scale_size(range = c(.1, 24), name="Reported Hours") +
+          ggtitle("Monthly Hours Worked on Each Project") +
+          ylab("Project Name") +
+          xlab("Calendar Year & Month")  
+
+}, height = "auto", width = "auto")
+
+```
+
+### Summary Table
+
+```{r output1.2}
+
+renderTable({
+
+      data.2 %>%                               
+          filter(Employee.Name == input$name) %>% 
+          #filter(Rating.Year == input$rate.year) %>% 
+          filter(WBS.Group.Category == input$wbs.type) %>% 
+    
+          group_by(WBS.Group.Name) %>% 
+          summarize(total.hours = sum(hours)) %>% 
+    
+          arrange(desc(total.hours), .by_group = TRUE)
+
+})
+
+```
+
+# Rating Period
+
+## Column {.sidebar}
+
+**BACKGROUND:** 
+
+This dashboard was developed by Katherine Schaughency. The intent was to use the workload data to practice her R skill using tidyverse and flexdashboard. 
+
+**DASHBOARD:** 
+
+This dashboard summarizes reported labor hours for each project/non-project from Dec 2017 to Mar 2020. 
+
+**USER INPUTS:**
+
+```{r input2.1}
+
+selectInput(inputId = "name.2", 
+            label = "Name of the Employee:",
+            choices = c("DOE, JOHN"),
+            selected = "DOE, JOHN")
+
+selectInput(inputId = "wbs.type.2",
+            label = "Billable Type:",
+            choices = c("Project", "Non-Project"),
+            selected = "Project")
+
+selectInput(inputId = "rate.year",
+           label = "Rating Year:",
+           choices = c("2017-2018","2018-2019","2019-2020"),
+           selected = "2019-2020")
+
+```
+
+
+## Column {.tabset} 
+
+### Plot
+
+```{r output2.1}
+
+renderPlot({
+
+       data.2 %>%                               
+          filter(Employee.Name == input$name.2) %>% 
+          filter(Rating.Year == input$rate.year) %>% 
+          filter(WBS.Group.Category == input$wbs.type.2) %>% 
+    
+          group_by(date, WBS.Group.Name) %>% 
+          summarize(total.hours = sum(hours)) %>%  
+  
+          ggplot(aes(x=date,
+                     y=reorder(WBS.Group.Name, desc(WBS.Group.Name)),
+                     size=total.hours,
+                     color=WBS.Group.Name)) +
+          geom_point(alpha=0.5) +
+          scale_y_discrete(labels = function(k) str_wrap(k, width = 20)) +
+          scale_size(range = c(.1, 24), name="Reported Hours") +
+          ggtitle("Monthly Hours Worked on Each Project") +
+          ylab("Project Name") +
+          xlab("Calendar Year & Month")  
+
+}, height = "auto", width = "auto")
+
+```
+
+### Summary Table
+
+```{r output2.2}
+
+renderTable({
+
+      data.2 %>%                               
+          filter(Employee.Name == input$name.2) %>% 
+          filter(Rating.Year == input$rate.year) %>% 
+          filter(WBS.Group.Category == input$wbs.type.2) %>% 
+    
+          group_by(WBS.Group.Name) %>% 
+          summarize(total.hours = sum(hours)) %>% 
+    
+          arrange(desc(total.hours), .by_group = TRUE)
+
+})
+
+```
