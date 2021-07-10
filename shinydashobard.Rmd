@@ -12,7 +12,7 @@ library(readxl)    # read excel
 library(lubridate) # convert date
 
 # load data
-data <- read_excel("ataaps_example_10Apr20.xlsx", sheet = "DATA", col_types = "text")
+data <- read_excel("workhours_example_10Apr20.xlsx", sheet = "DATA", col_types = "text")
 
 # clean and subset data
 data.2 <-  
