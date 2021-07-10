@@ -10,3 +10,6 @@ This dashboard summarizes reported labor hours for each project/non-project from
 
 ## LINK:
 https://kcmlin.shinyapps.io/rshiny-practice-2/
+
+## PREVIEW:
+![](rshiny-practice-2-workhours.png)
